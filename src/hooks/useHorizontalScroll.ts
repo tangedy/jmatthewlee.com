@@ -49,10 +49,18 @@ export function useHorizontalScroll(enabled: boolean) {
 
     const updateActiveSection = (instance: Lenis) => {
       viewport.style.setProperty('--scroll-progress', instance.progress.toFixed(4))
+      viewport.style.setProperty('--backdrop-shift', `${(-instance.scroll * 0.065).toFixed(2)}px`)
       viewport.style.setProperty(
         '--scroll-velocity',
         Math.min(Math.abs(instance.velocity) / 35, 1).toFixed(4),
       )
+
+      const home = track.querySelector<HTMLElement>('#home')
+      const blurStart = Math.max((home?.offsetWidth ?? viewport.clientWidth) - viewport.clientWidth * 0.55, 0)
+      const blurDistance = Math.max(viewport.clientWidth * 0.28, 180)
+      const backdropSubdue = Math.min(Math.max((instance.scroll - blurStart) / blurDistance, 0), 1)
+      viewport.style.setProperty('--backdrop-blur', `${(backdropSubdue * 2.2).toFixed(2)}px`)
+      viewport.style.setProperty('--backdrop-opacity', (0.96 - backdropSubdue * 0.46).toFixed(3))
 
       const samplePoint = instance.scroll + viewport.clientWidth * 0.48
       let visibleSection: SectionId = 'home'

@@ -28,11 +28,11 @@ describe('portfolio entry', () => {
   it('moves from the hello gate to the horizontal portfolio', () => {
     render(<App />)
 
-    const hello = screen.getByRole('button', { name: 'hello' })
-    expect(hello).toBeVisible()
+    const welcome = screen.getByRole('button', { name: 'welcome!' })
+    expect(welcome).toBeVisible()
     expect(screen.queryByRole('navigation', { name: 'Portfolio sections' })).not.toBeInTheDocument()
 
-    fireEvent.click(hello)
+    fireEvent.click(welcome)
     expect(document.querySelector('.landing-gate')).toHaveClass('is-entering')
 
     act(() => vi.advanceTimersByTime(2350))
@@ -43,7 +43,7 @@ describe('portfolio entry', () => {
 
   it('renders all six projects and verified contact outputs', () => {
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'hello' }))
+    fireEvent.click(screen.getByRole('button', { name: 'welcome!' }))
     act(() => vi.advanceTimersByTime(2350))
 
     expect(screen.getByRole('heading', { name: 'FPGA DSP Workshop' })).toBeInTheDocument()

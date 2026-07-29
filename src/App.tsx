@@ -3,6 +3,7 @@ import './portfolio.css'
 import { CircuitBackdrop } from './components/CircuitBackdrop'
 import { LandingGate } from './components/LandingGate'
 import { SectionNav } from './components/SectionNav'
+import { SignalWave } from './components/SignalWave'
 import { useHorizontalScroll } from './hooks/useHorizontalScroll'
 import {
   AboutSection,
@@ -35,6 +36,7 @@ function App() {
         inert={phase !== 'active'}
       >
         <CircuitBackdrop />
+        <SignalWave className="home-signal-residue" />
         <div className="horizontal-track" ref={trackRef}>
           <HomeSection onViewProjects={() => scrollToSection('projects')} />
           <AboutSection />
