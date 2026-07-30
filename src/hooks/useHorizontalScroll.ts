@@ -6,12 +6,20 @@ export type SectionId = (typeof sectionIds)[number]
 
 type DragState = {
   pointerId: number
-  startX: number
-  lastX: number
+  startPosition: number
+  lastPosition: number
   lastTime: number
   startScroll: number
   velocity: number
   moved: boolean
+}
+
+type ScrollAxis = 'horizontal' | 'vertical'
+
+function getScrollAxis(): ScrollAxis {
+  return typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches
+    ? 'vertical'
+    : 'horizontal'
 }
 
 export function useHorizontalScroll(enabled: boolean) {
@@ -19,6 +27,16 @@ export function useHorizontalScroll(enabled: boolean) {
   const trackRef = useRef<HTMLDivElement>(null)
   const lenisRef = useRef<Lenis | null>(null)
   const [activeSection, setActiveSection] = useState<SectionId>('home')
+  const [scrollAxis, setScrollAxis] = useState<ScrollAxis>(getScrollAxis)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia?.('(max-width: 760px)')
+    if (!mediaQuery) return
+
+    const updateScrollAxis = () => setScrollAxis(mediaQuery.matches ? 'vertical' : 'horizontal')
+    mediaQuery.addEventListener('change', updateScrollAxis)
+    return () => mediaQuery.removeEventListener('change', updateScrollAxis)
+  }, [])
 
   useEffect(() => {
     const viewport = viewportRef.current
@@ -26,12 +44,13 @@ export function useHorizontalScroll(enabled: boolean) {
 
     if (!enabled || !viewport || !track) return
 
+    const isVertical = scrollAxis === 'vertical'
     const lenis = new Lenis({
       wrapper: viewport,
       content: track,
       eventsTarget: viewport,
-      orientation: 'horizontal',
-      gestureOrientation: 'both',
+      orientation: scrollAxis,
+      gestureOrientation: isVertical ? 'vertical' : 'both',
       smoothWheel: true,
       syncTouch: true,
       syncTouchLerp: 0.09,
@@ -56,19 +75,22 @@ export function useHorizontalScroll(enabled: boolean) {
       )
 
       const home = track.querySelector<HTMLElement>('#home')
-      const blurStart = Math.max((home?.offsetWidth ?? viewport.clientWidth) - viewport.clientWidth * 0.55, 0)
-      const blurDistance = Math.max(viewport.clientWidth * 0.28, 180)
+      const viewportSize = isVertical ? viewport.clientHeight : viewport.clientWidth
+      const homeSize = isVertical ? home?.offsetHeight : home?.offsetWidth
+      const blurStart = Math.max((homeSize ?? viewportSize) - viewportSize * 0.55, 0)
+      const blurDistance = Math.max(viewportSize * 0.28, 180)
       const backdropSubdue = Math.min(Math.max((instance.scroll - blurStart) / blurDistance, 0), 1)
       viewport.style.setProperty('--backdrop-blur', `${(backdropSubdue * 2.2).toFixed(2)}px`)
       viewport.style.setProperty('--backdrop-opacity', (0.96 - backdropSubdue * 0.46).toFixed(3))
 
-      const samplePoint = instance.scroll + viewport.clientWidth * 0.48
+      const samplePoint = instance.scroll + viewportSize * 0.48
       let visibleSection: SectionId = 'home'
 
       sectionIds.forEach((id) => {
         const section = track.querySelector<HTMLElement>(`#${id}`)
         if (!section) return
-        if (samplePoint >= section.offsetLeft) visibleSection = id
+        const sectionStart = isVertical ? section.offsetTop : section.offsetLeft
+        if (samplePoint >= sectionStart) visibleSection = id
       })
 
       if (visibleSection !== currentSection) {
@@ -83,10 +105,11 @@ export function useHorizontalScroll(enabled: boolean) {
       if (event.pointerType !== 'mouse' || event.button !== 0) return
       if ((event.target as HTMLElement).closest('a, button, input, textarea')) return
 
+      const pointerPosition = isVertical ? event.clientY : event.clientX
       dragState = {
         pointerId: event.pointerId,
-        startX: event.clientX,
-        lastX: event.clientX,
+        startPosition: pointerPosition,
+        lastPosition: pointerPosition,
         lastTime: event.timeStamp,
         startScroll: lenis.scroll,
         velocity: 0,
@@ -99,11 +122,12 @@ export function useHorizontalScroll(enabled: boolean) {
     const onPointerMove = (event: PointerEvent) => {
       if (!dragState || event.pointerId !== dragState.pointerId) return
 
-      const totalDelta = event.clientX - dragState.startX
+      const pointerPosition = isVertical ? event.clientY : event.clientX
+      const totalDelta = pointerPosition - dragState.startPosition
       const frameTime = Math.max(event.timeStamp - dragState.lastTime, 1)
-      const frameDelta = event.clientX - dragState.lastX
+      const frameDelta = pointerPosition - dragState.lastPosition
       dragState.velocity = frameDelta / frameTime
-      dragState.lastX = event.clientX
+      dragState.lastPosition = pointerPosition
       dragState.lastTime = event.timeStamp
       dragState.moved = dragState.moved || Math.abs(totalDelta) > 3
 
@@ -152,13 +176,14 @@ export function useHorizontalScroll(enabled: boolean) {
       lenis.destroy()
       lenisRef.current = null
     }
-  }, [enabled])
+  }, [enabled, scrollAxis])
 
   const scrollToSection = (sectionId: SectionId) => {
     const target = trackRef.current?.querySelector<HTMLElement>(`#${sectionId}`)
     if (!target) return
 
-    lenisRef.current?.scrollTo(target.offsetLeft, {
+    const targetPosition = scrollAxis === 'vertical' ? target.offsetTop : target.offsetLeft
+    lenisRef.current?.scrollTo(targetPosition, {
       duration: 1.35,
       easing: (time) => 1 - Math.pow(1 - time, 4),
     })

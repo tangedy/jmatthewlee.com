@@ -58,7 +58,8 @@ export function CircuitBackdrop() {
         </svg>
       </div>
       <div className="signal-progress">
-        <span>SCROLL / X</span>
+        <span className="scroll-axis-label scroll-axis-x">SCROLL / X</span>
+        <span className="scroll-axis-label scroll-axis-y">SCROLL / Y</span>
         <div className="signal-progress-track">
           <span />
         </div>

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 async function enterPortfolio(page: Page) {
+  const isMobile = page.viewportSize()!.width <= 760
   await expect(page.locator('main')).toHaveAttribute('data-phase', 'idle')
   await page.getByRole('button', { name: 'welcome!' }).click()
   await expect(page.locator('.landing-gate')).toHaveClass(/is-entering/)
@@ -10,7 +11,9 @@ async function enterPortfolio(page: Page) {
   const seamDelta = await page.evaluate(() => {
     const gate = document.querySelector('.landing-gate')!.getBoundingClientRect()
     const portfolio = document.querySelector('.horizontal-viewport')!.getBoundingClientRect()
-    return Math.abs(gate.right - portfolio.left)
+    return window.innerWidth <= 760
+      ? Math.abs(gate.bottom - portfolio.top)
+      : Math.abs(gate.right - portfolio.left)
   })
   expect(origin?.width).toBeCloseTo(8, 0)
   expect(origin?.height).toBeCloseTo(8, 0)
@@ -26,13 +29,17 @@ async function enterPortfolio(page: Page) {
       status: document.querySelector('.landing-status')?.textContent,
       signal: signal.textContent,
       color: getComputedStyle(meta).color,
-      waveBleed: wave.right - home.left,
+      waveBleed: window.innerWidth <= 760 ? wave.bottom - home.top : wave.right - home.left,
+      waveIsVertical: wave.height > wave.width,
     }
   })
   expect(entryTelemetry.status).toBe('START')
   expect(entryTelemetry.signal).toBe('1.000')
   expect(entryTelemetry.color).toBe('rgb(124, 53, 232)')
-  expect(entryTelemetry.waveBleed).toBeGreaterThanOrEqual(page.viewportSize()!.width - 1)
+  expect(entryTelemetry.waveBleed).toBeGreaterThanOrEqual(
+    (isMobile ? page.viewportSize()!.height : page.viewportSize()!.width) - 1,
+  )
+  expect(entryTelemetry.waveIsVertical).toBe(isMobile)
 
   await expect(page.getByRole('navigation', { name: 'Portfolio sections' })).toBeVisible({
     timeout: 5000,
@@ -188,7 +195,7 @@ test('desktop entry, wheel, drag, and section navigation', async ({ page }) => {
   await expect(page.locator('.terminal-link[href="https://github.com/JMatthewLee"]')).toBeVisible()
 })
 
-test('mobile canvas preserves horizontal composition', async ({ page }) => {
+test('mobile canvas uses vertical inertial composition', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
   await enterPortfolio(page)
@@ -196,9 +203,42 @@ test('mobile canvas preserves horizontal composition', async ({ page }) => {
   const homeSection = await page.locator('#home').boundingBox()
   const homeCopy = await page.locator('.home-copy').boundingBox()
   const homeInstrument = await page.locator('.home-instrument').boundingBox()
+  const portraitConsole = await page.locator('.portrait-console').boundingBox()
+  const signalPlot = await page.locator('.signal-plot').boundingBox()
   expect(homeSection).not.toBeNull()
-  expect(homeSection!.width).toBeLessThan(390)
+  expect(homeSection!.width).toBeCloseTo(390, 0)
   expect(homeCopy!.y + homeCopy!.height).toBeLessThanOrEqual(homeInstrument!.y + 2)
+  expect(portraitConsole).not.toBeNull()
+  expect(signalPlot).not.toBeNull()
+  expect(portraitConsole!.y + portraitConsole!.height).toBeLessThanOrEqual(signalPlot!.y)
+
+  const viewport = page.locator('.horizontal-viewport')
+  const initialScroll = await viewport.evaluate((element) => ({
+    left: element.scrollLeft,
+    top: element.scrollTop,
+    hasHorizontalOverflow: element.scrollWidth > element.clientWidth + 1,
+  }))
+  expect(initialScroll.left).toBe(0)
+  expect(initialScroll.hasHorizontalOverflow).toBe(false)
+
+  await page.mouse.move(195, 420)
+  await page.mouse.wheel(0, 900)
+  await page.waitForTimeout(700)
+  const wheelScroll = await viewport.evaluate((element) => {
+    const backdropTransform = new DOMMatrix(
+      getComputedStyle(document.querySelector<HTMLElement>('.circuit-field')!).transform,
+    )
+    return {
+      left: element.scrollLeft,
+      top: element.scrollTop,
+      backdropX: backdropTransform.m41,
+      backdropY: backdropTransform.m42,
+    }
+  })
+  expect(wheelScroll.left).toBe(0)
+  expect(wheelScroll.top).toBeGreaterThan(initialScroll.top + 80)
+  expect(wheelScroll.backdropX).toBeCloseTo(0, 1)
+  expect(Math.abs(wheelScroll.backdropY)).toBeGreaterThan(0)
 
   await page.getByRole('button', { name: 'Go to About' }).click()
   await page.waitForTimeout(1500)

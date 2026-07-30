@@ -305,6 +305,10 @@ img {
   transform: translateX(-50%);
 }
 
+.scroll-axis-y {
+  display: none;
+}
+
 .signal-progress-track {
   height: 1px;
   overflow: hidden;
@@ -743,12 +747,27 @@ img {
   }
 }
 
+@keyframes gate-pan-mobile {
+  to {
+    transform: translateY(-100dvh);
+  }
+}
+
 @keyframes portfolio-arrival {
   from {
     transform: translateX(100vw);
   }
   to {
     transform: translateX(0);
+  }
+}
+
+@keyframes portfolio-arrival-mobile {
+  from {
+    transform: translateY(100dvh);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 
@@ -1701,6 +1720,40 @@ img {
     background-size: 24px 24px;
   }
 
+  .horizontal-viewport {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .engineering-app[data-phase='entering'] .horizontal-viewport {
+    animation-name: portfolio-arrival-mobile;
+  }
+
+  .horizontal-track {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 100%;
+    flex-direction: column;
+  }
+
+  .portfolio-section {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 100dvh;
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .scroll-axis-x {
+    display: none;
+  }
+
+  .scroll-axis-y {
+    display: inline;
+  }
+
   .section-index {
     top: 20px;
     left: 20px;
@@ -1712,6 +1765,14 @@ img {
     font-size: 7px;
   }
 
+  .circuit-field {
+    top: 0;
+    bottom: auto;
+    width: 100%;
+    height: calc(100% + 1100px);
+    transform: translate3d(0, var(--backdrop-shift), 0);
+  }
+
   .circuit-backdrop svg {
     opacity: 0.46;
   }
@@ -1720,12 +1781,42 @@ img {
     background-size: 48px 48px;
   }
 
+  .landing-gate.is-entering {
+    animation-name: gate-pan-mobile;
+  }
+
+  .landing-gate::before,
+  .landing-gate::after {
+    right: auto;
+    left: 0;
+    width: 100%;
+    height: 1px;
+  }
+
   .landing-gate::before {
-    left: 10%;
+    top: 10%;
   }
 
   .landing-gate::after {
-    right: 10%;
+    top: auto;
+    bottom: 10%;
+  }
+
+  .landing-wave,
+  .home-signal-residue {
+    inset: 0 auto auto 0;
+    width: 200dvh;
+    height: 100vw;
+    transform-origin: top left;
+  }
+
+  .landing-wave {
+    transform: translateX(100vw) rotate(90deg);
+  }
+
+  .home-signal-residue {
+    transform: translate3d(0, calc(-100dvh + var(--backdrop-shift)), 0)
+      translateX(100vw) rotate(90deg);
   }
 
   .landing-meta {
@@ -1788,8 +1879,8 @@ img {
 
   .home-section {
     display: grid;
-    width: 92vw;
-    min-width: 360px;
+    width: 100%;
+    min-width: 0;
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
     gap: 18px;
@@ -1815,7 +1906,7 @@ img {
   }
 
   .home-instrument {
-    grid-template-columns: 1fr 0.72fr;
+    grid-template-columns: 1fr;
     gap: 8px;
     min-height: 0;
   }
@@ -1844,21 +1935,21 @@ img {
   }
 
   .about-section {
-    width: 920px;
-    grid-template-columns: 260px 292px 298px;
-    gap: 22px;
-    align-items: center;
-    padding: 58px 20px 44px;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+    padding: 70px 22px 76px;
   }
 
   .about-portrait-column,
   .about-copy-column,
   .skills-column {
-    height: min(76vh, 640px);
+    height: auto;
   }
 
   .about-portrait-column {
-    grid-template-rows: minmax(225px, 1fr) 0.9fr;
+    grid-template-rows: minmax(360px, 58vh) auto;
     gap: 12px;
   }
 
@@ -1936,16 +2027,19 @@ img {
   }
 
   .projects-section {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
     gap: 20px;
-    padding: 48px 40px 46px 28px;
+    padding: 70px 22px 76px;
   }
 
   .project-intro {
-    width: 250px;
+    width: 100%;
   }
 
   .project-intro .section-index {
-    top: -63px;
+    top: -50px;
   }
 
   .project-intro > p:not(.signal-kicker) {
@@ -1957,8 +2051,14 @@ img {
   }
 
   .project-grid {
-    grid-auto-columns: 305px;
-    gap: 13px;
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .project-grid::before {
+    display: none;
   }
 
   .project-module {
@@ -1968,7 +2068,7 @@ img {
   }
 
   .project-module:nth-child(even) {
-    transform: translateY(10px);
+    transform: none;
   }
 
   .project-content {
@@ -2008,11 +2108,11 @@ img {
   }
 
   .links-section {
-    width: 620px;
-    min-width: 620px;
-    grid-template-columns: 240px 300px 28px;
-    gap: 24px;
-    padding: 64px 28px 48px 26px;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 38px;
+    padding: 70px 22px 86px;
   }
 
   .links-copy > p:last-child {
@@ -2044,7 +2144,16 @@ img {
   }
 
   .end-cap {
-    height: 66%;
+    height: auto;
+    flex-direction: row;
+    padding-top: 12px;
+    border-top: 1px solid var(--red);
+    border-left: 0;
+    writing-mode: horizontal-tb;
+  }
+
+  .end-cap-node {
+    transform: translateY(-18px);
   }
 
   .copyright {
@@ -2109,6 +2218,12 @@ img {
   .signal-plot {
     height: 64px;
     min-height: 0;
+  }
+
+  .about-portrait-column,
+  .about-copy-column,
+  .skills-column {
+    height: auto;
   }
 
   .project-module {
