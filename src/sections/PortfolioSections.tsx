@@ -95,12 +95,16 @@ export function HomeSection({ onViewProjects }: HomeSectionProps) {
         01 / HOME
       </div>
       <div className="home-copy">
-        <p className="signal-kicker">MTRX // WATERLOO</p>
+        <p className="signal-kicker">
+          <span className="home-text-backplate">MTRX // WATERLOO</span>
+        </p>
         <h1 aria-label="Matthew Lee">
-          <span>Matthew</span>
-          <span>Lee</span>
+          <span className="home-text-backplate">Matthew</span>
+          <span className="home-text-backplate">Lee</span>
         </h1>
-        <p className="home-bio">{profile.shortBio}</p>
+        <p className="home-bio">
+          <span className="home-text-backplate">{profile.shortBio}</span>
+        </p>
         <button type="button" className="inline-command" onClick={onViewProjects}>
           View projects <ArrowRight size={17} strokeWidth={1.5} aria-hidden="true" />
         </button>

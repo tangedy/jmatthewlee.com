@@ -50,17 +50,25 @@ async function enterPortfolio(page: Page) {
       Number(endpoint.getAttribute('cy')),
     )
     const accentPath = residue.querySelector('.intro-signal-accent path')?.getAttribute('d') ?? ''
-    const bioBackplate = getComputedStyle(
-      document.querySelector<HTMLElement>('.home-bio')!,
-      '::before',
-    )
+    const bio = document.querySelector<HTMLElement>('.home-bio')!
+    const bioBackplate = bio.querySelector<HTMLElement>('.home-text-backplate')!
+    const bioRange = document.createRange()
+    bioRange.selectNodeContents(bioBackplate)
+    const headingWidths = [
+      ...document.querySelectorAll<HTMLElement>('.home-copy h1 .home-text-backplate'),
+    ].map((line) => line.getBoundingClientRect().width)
     return {
       residueZ: Number(getComputedStyle(residue).zIndex),
       contentZ: Number(getComputedStyle(content).zIndex),
       endpoints,
       endpointHeights,
       accentPath,
-      bioBlur: bioBackplate.backdropFilter || bioBackplate.webkitBackdropFilter,
+      bioBlur:
+        getComputedStyle(bioBackplate).backdropFilter ||
+        getComputedStyle(bioBackplate).webkitBackdropFilter,
+      bioWidth: bio.getBoundingClientRect().width,
+      bioFragmentWidths: [...bioRange.getClientRects()].map((fragment) => fragment.width),
+      headingWidths,
     }
   })
   expect(persistentWave.residueZ).toBeLessThan(persistentWave.contentZ)
@@ -69,7 +77,9 @@ async function enterPortfolio(page: Page) {
   expect(persistentWave.endpointHeights.some((height) => height >= 400 && height <= 600)).toBe(true)
   expect(persistentWave.accentPath).toContain('414 H')
   expect(persistentWave.accentPath).toContain('730 H')
-  expect(persistentWave.bioBlur).toBe('blur(8px)')
+  expect(persistentWave.bioBlur).toBe('blur(4px)')
+  expect(persistentWave.headingWidths[1]).toBeLessThan(persistentWave.headingWidths[0])
+  expect(Math.min(...persistentWave.bioFragmentWidths)).toBeLessThan(persistentWave.bioWidth)
 }
 
 test('desktop entry, wheel, drag, and section navigation', async ({ page }) => {
@@ -87,6 +97,28 @@ test('desktop entry, wheel, drag, and section navigation', async ({ page }) => {
   expect(homeCopy!.x + homeCopy!.width).toBeLessThanOrEqual(homeInstrument!.x + 2)
   await expect(page.locator('.plot-trace').first()).toHaveCSS('stroke-width', '0.85px')
   await expect(page.locator('.plot-trace').first()).toHaveCSS('shape-rendering', 'crispedges')
+  const portraitLayout = await page.evaluate(() => {
+    const screen = document.querySelector<HTMLElement>('.portrait-screen')!
+    const image = screen.querySelector<HTMLImageElement>('img')!
+    return {
+      naturalRatio: image.naturalWidth / image.naturalHeight,
+      renderedRatio: screen.clientWidth / screen.clientHeight,
+      objectFit: getComputedStyle(image).objectFit,
+      plotHeight: document.querySelector<HTMLElement>('.signal-plot')!.clientHeight,
+    }
+  })
+  expect(portraitLayout.renderedRatio).toBeCloseTo(portraitLayout.naturalRatio, 2)
+  expect(portraitLayout.objectFit).toBe('contain')
+  expect(portraitLayout.plotHeight).toBe(72)
+
+  await page.getByRole('button', { name: 'Use dark mode' }).click()
+  await expect(page.locator('main')).toHaveAttribute('data-theme', 'dark')
+  expect(await page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('dark')
+  await page.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+  })
+  await page.keyboard.type('dark')
+  await expect(page.locator('main')).toHaveAttribute('data-theme', 'light')
 
   const aboutProjectGap = await page.evaluate(() => {
     const skills = document.querySelector('.skills-column')!.getBoundingClientRect()

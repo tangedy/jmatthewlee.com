@@ -19,7 +19,12 @@ vi.mock('lenis', () => ({
 }))
 
 describe('portfolio entry', () => {
-  beforeEach(() => vi.useFakeTimers())
+  beforeEach(() => {
+    vi.useFakeTimers()
+    window.localStorage.clear()
+    delete document.documentElement.dataset.theme
+    document.documentElement.style.colorScheme = ''
+  })
   afterEach(() => {
     cleanup()
     vi.useRealTimers()
@@ -53,5 +58,23 @@ describe('portfolio entry', () => {
       'href',
       'mailto:m88lee@uwaterloo.ca',
     )
+  })
+
+  it('toggles and persists dark mode from the keyboard sequence and control', () => {
+    render(<App />)
+
+    for (const key of ['d', 'a', 'r', 'k']) {
+      fireEvent.keyDown(document.body, { key })
+    }
+
+    expect(document.querySelector('main')).toHaveAttribute('data-theme', 'dark')
+    expect(window.localStorage.getItem('portfolio-theme')).toBe('dark')
+
+    fireEvent.click(screen.getByRole('button', { name: 'welcome!' }))
+    act(() => vi.advanceTimersByTime(2350))
+    fireEvent.click(screen.getByRole('button', { name: 'Use light mode' }))
+
+    expect(document.querySelector('main')).toHaveAttribute('data-theme', 'light')
+    expect(window.localStorage.getItem('portfolio-theme')).toBe('light')
   })
 })

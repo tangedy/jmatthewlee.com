@@ -1,3 +1,4 @@
+import { Moon, Sun } from 'lucide-react'
 import type { SectionId } from '../hooks/useHorizontalScroll'
 
 const navigationItems: { id: SectionId; number: string; label: string }[] = [
@@ -9,10 +10,14 @@ const navigationItems: { id: SectionId; number: string; label: string }[] = [
 
 type SectionNavProps = {
   activeSection: SectionId
+  theme: 'light' | 'dark'
   onNavigate: (section: SectionId) => void
+  onToggleTheme: () => void
 }
 
-export function SectionNav({ activeSection, onNavigate }: SectionNavProps) {
+export function SectionNav({ activeSection, theme, onNavigate, onToggleTheme }: SectionNavProps) {
+  const themeLabel = theme === 'dark' ? 'Use light mode' : 'Use dark mode'
+
   return (
     <nav className="section-nav" aria-label="Portfolio sections">
       {navigationItems.map((item) => (
@@ -28,6 +33,21 @@ export function SectionNav({ activeSection, onNavigate }: SectionNavProps) {
           <span>{item.number}</span>
         </button>
       ))}
+      <button
+        type="button"
+        className="theme-toggle"
+        aria-label={themeLabel}
+        aria-pressed={theme === 'dark'}
+        data-label={themeLabel}
+        title={`${themeLabel} (or type "dark")`}
+        onClick={onToggleTheme}
+      >
+        {theme === 'dark' ? (
+          <Sun size={14} strokeWidth={1.5} aria-hidden="true" />
+        ) : (
+          <Moon size={14} strokeWidth={1.5} aria-hidden="true" />
+        )}
+      </button>
     </nav>
   )
 }
