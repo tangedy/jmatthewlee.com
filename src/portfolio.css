@@ -101,6 +101,7 @@ img {
   width: 100%;
   height: 100dvh;
   overflow: hidden;
+  color: var(--ink);
   background-color: var(--paper);
 }
 
@@ -1459,7 +1460,7 @@ img {
 }
 
 .engineering-app[data-theme='dark'] .project-number {
-  color: #303832;
+  color: #69736c;
 }
 
 .project-content h3 {

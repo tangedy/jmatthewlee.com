@@ -53,6 +53,9 @@ describe('portfolio entry', () => {
 
     expect(screen.getByRole('heading', { name: 'FPGA DSP Workshop' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Dutch Blitz Card Sorter' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'About myself' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'My works' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'PLEASE HIRE ME PLEASE PLEASE' })).toBeInTheDocument()
     expect(screen.getAllByRole('article')).toHaveLength(6)
     expect(screen.getByRole('link', { name: /m88lee@uwaterloo.ca/i })).toHaveAttribute(
       'href',
@@ -60,7 +63,7 @@ describe('portfolio entry', () => {
     )
   })
 
-  it('toggles and persists dark mode from the keyboard sequence and control', () => {
+  it('sets and persists each theme from its keyboard sequence and the control', () => {
     render(<App />)
 
     for (const key of ['d', 'a', 'r', 'k']) {
@@ -70,11 +73,24 @@ describe('portfolio entry', () => {
     expect(document.querySelector('main')).toHaveAttribute('data-theme', 'dark')
     expect(window.localStorage.getItem('portfolio-theme')).toBe('dark')
 
-    fireEvent.click(screen.getByRole('button', { name: 'welcome!' }))
-    act(() => vi.advanceTimersByTime(2350))
-    fireEvent.click(screen.getByRole('button', { name: 'Use light mode' }))
+    for (const key of ['d', 'a', 'r', 'k']) {
+      fireEvent.keyDown(document.body, { key })
+    }
+
+    expect(document.querySelector('main')).toHaveAttribute('data-theme', 'dark')
+
+    for (const key of ['l', 'i', 'g', 'h', 't']) {
+      fireEvent.keyDown(document.body, { key })
+    }
 
     expect(document.querySelector('main')).toHaveAttribute('data-theme', 'light')
     expect(window.localStorage.getItem('portfolio-theme')).toBe('light')
+
+    fireEvent.click(screen.getByRole('button', { name: 'welcome!' }))
+    act(() => vi.advanceTimersByTime(2350))
+    fireEvent.click(screen.getByRole('button', { name: 'Use dark mode' }))
+
+    expect(document.querySelector('main')).toHaveAttribute('data-theme', 'dark')
+    expect(window.localStorage.getItem('portfolio-theme')).toBe('dark')
   })
 })

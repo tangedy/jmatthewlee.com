@@ -154,7 +154,7 @@ export function AboutSection() {
 
       <div className="about-copy-column">
         <p className="signal-kicker">SYSTEM PROFILE</p>
-        <h2>Built between hardware and code.</h2>
+        <h2>About myself</h2>
         <div className="about-prose">
           {profile.about.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
@@ -198,7 +198,7 @@ export function ProjectsSection() {
           03 / PROJECTS
         </div>
         <p className="signal-kicker">SELECTED OUTPUTS</p>
-        <h2>Systems in motion.</h2>
+        <h2>My works</h2>
         <p>Six builds across digital logic, embedded sensing, robotics, games, and the web.</p>
         <div className="project-scale" aria-hidden="true">
           <span>0.0</span>
@@ -262,7 +262,7 @@ export function LinksSection() {
       </div>
       <div className="links-copy">
         <p className="signal-kicker">OPEN CONNECTIONS</p>
-        <h2>Let&apos;s build something that works.</h2>
+        <h2>PLEASE HIRE ME PLEASE PLEASE</h2>
         <p>Waterloo, Ontario / available across hardware, embedded, and software systems.</p>
       </div>
 

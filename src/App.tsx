@@ -59,10 +59,16 @@ function App() {
         return
       }
 
-      typedSequence = `${typedSequence}${event.key.toLowerCase()}`.slice(-4)
-      if (typedSequence !== 'dark') return
+      typedSequence = `${typedSequence}${event.key.toLowerCase()}`.slice(-5)
+      if (typedSequence.endsWith('dark')) {
+        setTheme('dark')
+        typedSequence = ''
+        return
+      }
 
-      setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
+      if (!typedSequence.endsWith('light')) return
+
+      setTheme('light')
       typedSequence = ''
     }
 

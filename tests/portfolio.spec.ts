@@ -113,11 +113,14 @@ test('desktop entry, wheel, drag, and section navigation', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Use dark mode' }).click()
   await expect(page.locator('main')).toHaveAttribute('data-theme', 'dark')
+  await expect(page.locator('.project-content h3').first()).toHaveCSS('color', 'rgb(238, 242, 237)')
   expect(await page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('dark')
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
   })
   await page.keyboard.type('dark')
+  await expect(page.locator('main')).toHaveAttribute('data-theme', 'dark')
+  await page.keyboard.type('light')
   await expect(page.locator('main')).toHaveAttribute('data-theme', 'light')
 
   const aboutProjectGap = await page.evaluate(() => {
@@ -203,7 +206,7 @@ test('mobile canvas preserves horizontal composition', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Go to Projects' }).click()
   await page.waitForTimeout(1500)
-  await expect(page.getByRole('heading', { name: 'Systems in motion.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'My works' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Go to Projects' })).toHaveAttribute(
     'aria-current',
     'page',

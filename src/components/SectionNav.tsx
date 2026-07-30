@@ -17,6 +17,7 @@ type SectionNavProps = {
 
 export function SectionNav({ activeSection, theme, onNavigate, onToggleTheme }: SectionNavProps) {
   const themeLabel = theme === 'dark' ? 'Use light mode' : 'Use dark mode'
+  const keyboardTheme = theme === 'dark' ? 'light' : 'dark'
 
   return (
     <nav className="section-nav" aria-label="Portfolio sections">
@@ -39,7 +40,7 @@ export function SectionNav({ activeSection, theme, onNavigate, onToggleTheme }: 
         aria-label={themeLabel}
         aria-pressed={theme === 'dark'}
         data-label={themeLabel}
-        title={`${themeLabel} (or type "dark")`}
+        title={`${themeLabel} (or type "${keyboardTheme}")`}
         onClick={onToggleTheme}
       >
         {theme === 'dark' ? (
